@@ -1,20 +1,60 @@
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
 @import "tailwindcss";
 
-:root {
-  --background: #080a10;
+:root{
+  --bg:#09090B;
+  --panel:#111113;
+  --panel-hover:#17171A;
+  --border:#27272A;
+  --text:#FAFAFA;
+  --muted:#A1A1AA;
+  --accent:#2563EB;
+  --danger:#EF4444;
+  --success:#22C55E;
 }
 
-* {
-  box-sizing: border-box;
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
 
-body {
-  margin: 0;
-  background: var(--background);
-  color: white;
-  font-family: Inter, Arial, Helvetica, sans-serif;
+html{
+  background:var(--bg);
 }
 
-button {
-  cursor: pointer;
+body{
+  font-family:"Inter",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+::-webkit-scrollbar{
+  width:8px;
+}
+
+::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+::-webkit-scrollbar-thumb{
+  background:#27272A;
+  border-radius:999px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+  background:#3F3F46;
+}
+
+input{
+  color:var(--text);
+}
+
+button{
+  cursor:pointer;
 }

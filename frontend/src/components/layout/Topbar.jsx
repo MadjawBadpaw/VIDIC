@@ -1,46 +1,41 @@
-import { Search, Bell, Cpu, UserCircle } from "lucide-react";
+import { Search, Bell, UserCircle } from "lucide-react";
+import { useState } from "react";
 
 export default function Topbar() {
+  const [search, setSearch] = useState("");
+
   return (
-    <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
-      {/* Search Bar */}
-      <div className="relative w-full max-w-md">
-        <Search
-          size={18}
-          className="absolute left-4 top-3.5 text-slate-500"
-        />
+    <header className="sticky top-0 z-20 border-b border-[#27272A] bg-[#09090B]/90 backdrop-blur px-8 py-5">
+      <div className="flex items-center justify-between gap-6">
+        {/* Search */}
+        <div className="relative w-full max-w-lg">
+          <Search
+            size={16}
+            className="absolute left-4 top-3.5 text-zinc-500"
+          />
 
-        <input
-          type="text"
-          placeholder="Search investigations, emails, domains..."
-          className="w-full rounded-xl bg-[#111827] border border-slate-700 py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:border-blue-500 transition"
-        />
-      </div>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search emails, domains, hashes..."
+            className="w-full rounded-xl border border-[#27272A] bg-[#111113] py-3 pl-11 pr-16 text-sm outline-none placeholder:text-zinc-500 focus:border-blue-600"
+          />
 
-      {/* Right Controls */}
-      <div className="flex items-center gap-3">
-        {/* AI Model Badge */}
-        <div className="flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-2">
-          <Cpu size={18} className="text-green-400" />
-
-          <div className="leading-tight">
-            <p className="text-xs text-slate-400">AI Engine</p>
-
-            <p className="text-sm font-medium text-green-400">
-              Ollama • Qwen 7B
-            </p>
-          </div>
+          <span className="absolute right-3 top-2.5 rounded-md border border-[#27272A] px-2 py-1 text-[10px] text-zinc-500">
+            Ctrl K
+          </span>
         </div>
 
-        {/* Notifications */}
-        <button className="rounded-xl border border-slate-700 bg-[#111827] p-3 hover:border-blue-500 transition">
-          <Bell size={18} className="text-slate-300" />
-        </button>
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <button className="rounded-lg border border-[#27272A] bg-[#111113] p-2.5 hover:bg-[#17171A]">
+            <Bell size={18} />
+          </button>
 
-        {/* User */}
-        <button className="rounded-xl border border-slate-700 bg-[#111827] p-2 hover:border-blue-500 transition">
-          <UserCircle size={28} className="text-slate-300" />
-        </button>
+          <button className="rounded-lg border border-[#27272A] bg-[#111113] p-2.5 hover:bg-[#17171A]">
+            <UserCircle size={20} />
+          </button>
+        </div>
       </div>
     </header>
   );

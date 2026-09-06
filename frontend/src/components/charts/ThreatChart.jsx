@@ -2,47 +2,61 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  CartesianGrid,
   Tooltip,
   XAxis,
   YAxis,
+  CartesianGrid,
 } from "recharts";
 
-import { threatTimeline } from "../../services/mockData";
+const data = [
+  { day: "Mon", threats: 5 },
+  { day: "Tue", threats: 11 },
+  { day: "Wed", threats: 8 },
+  { day: "Thu", threats: 16 },
+  { day: "Fri", threats: 10 },
+  { day: "Sat", threats: 18 },
+  { day: "Sun", threats: 13 },
+];
 
 export default function ThreatChart() {
   return (
     <div className="h-72 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={threatTimeline}>
-          <CartesianGrid stroke="#1F2937" strokeDasharray="3 3" />
+      <ResponsiveContainer>
+        <LineChart data={data}>
+          <CartesianGrid
+            stroke="#1A1A1D"
+            vertical={false}
+          />
 
           <XAxis
             dataKey="day"
-            stroke="#64748B"
-            tick={{ fill: "#94A3B8", fontSize: 12 }}
+            stroke="#71717A"
+            tickLine={false}
+            axisLine={false}
           />
 
           <YAxis
-            stroke="#64748B"
-            tick={{ fill: "#94A3B8", fontSize: 12 }}
+            stroke="#71717A"
+            tickLine={false}
+            axisLine={false}
           />
 
           <Tooltip
+            cursor={{ stroke: "#27272A" }}
             contentStyle={{
-              background: "#111827",
-              border: "1px solid #334155",
+              background: "#111113",
+              border: "1px solid #27272A",
               borderRadius: "10px",
+              color: "#FAFAFA",
             }}
           />
 
           <Line
-            type="monotone"
             dataKey="threats"
             stroke="#2563EB"
-            strokeWidth={3}
-            dot={{ r: 5, fill: "#2563EB" }}
-            activeDot={{ r: 7 }}
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4 }}
           />
         </LineChart>
       </ResponsiveContainer>
