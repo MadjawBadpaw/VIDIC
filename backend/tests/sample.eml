@@ -1,0 +1,17 @@
+From: "Microsoft Security" <security@microsoft-login.net>
+To: victim@example.com
+Subject: Urgent: Verify your account
+Date: Sat, 6 Sep 2026 09:14:00 +0000
+Return-Path: <security@microsoft-login.net>
+Received-SPF: fail
+DKIM-Signature: invalid
+
+Hello,
+
+Your Microsoft account has been suspended.
+
+Verify immediately:
+
+https://microsoft-login-security.net/auth/reset
+
+Contact support@microsoft-login.net if you believe this is a mistake.
