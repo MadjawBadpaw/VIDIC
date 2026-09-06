@@ -1,33 +1,64 @@
+import { useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
-import { Network } from "lucide-react";
+import Panel from "../components/ui/Panel";
 
 export default function Graph() {
+  const [sample] = useState([
+    {
+      hop: 1,
+      server: "smtp.evilhost.xyz",
+      ip: "185.221.44.88",
+      timestamp: "06 Sep 2026 08:58 UTC",
+    },
+    {
+      hop: 2,
+      server: "relay01.mailprovider.net",
+      ip: "172.217.12.20",
+      timestamp: "06 Sep 2026 09:01 UTC",
+    },
+    {
+      hop: 3,
+      server: "outlook.office365.com",
+      ip: "40.92.18.5",
+      timestamp: "06 Sep 2026 09:03 UTC",
+    },
+  ]);
+
   return (
     <AppLayout>
-      <div className="mt-8">
-        <p className="text-blue-400 uppercase text-sm tracking-widest">
-          Dashboard / Attack Graph
+      <section className="mb-12">
+        <p className="text-[11px] uppercase tracking-[0.25em] text-zinc-500 mb-3">
+          Investigation Graph
         </p>
 
-        <h1 className="text-4xl font-bold mt-2">Attack Graph</h1>
+        <h1 className="text-4xl font-semibold tracking-tight">
+          Email Routing Timeline
+        </h1>
+      </section>
 
-        <p className="text-slate-400 mt-3">
-          Visualize relationships between emails, domains, IP addresses, URLs,
-          and attachments using Neo4j.
-        </p>
+      <Panel title="SMTP Received Chain" subtitle="MAIL RELAY FORENSICS">
+        <div className="relative ml-2 border-l border-zinc-800 pl-8">
+          {sample.map((hop, index) => (
+            <div key={hop.hop} className="mb-10 relative">
+              <div className="absolute -left-[37px] top-1 h-4 w-4 rounded-full bg-blue-500 ring-4 ring-black" />
 
-        <div className="mt-8 rounded-2xl bg-[#111827] border border-slate-800 h-[600px] flex flex-col items-center justify-center">
-          <Network size={80} className="text-blue-400 mb-4" />
+              <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
+                Hop {hop.hop}
+              </p>
 
-          <h2 className="text-2xl font-semibold">
-            Interactive Attack Graph
-          </h2>
+              <h3 className="mt-2 text-lg font-medium">{hop.server}</h3>
 
-          <p className="text-slate-500 mt-2 text-center max-w-lg">
-            Neo4j graph visualization will appear here after backend integration.
-          </p>
+              <p className="text-sm text-zinc-400">{hop.ip}</p>
+
+              <p className="mt-2 text-xs text-zinc-500">{hop.timestamp}</p>
+
+              {index !== sample.length - 1 && (
+                <div className="mt-5 h-8 border-l border-dashed border-zinc-700 ml-1" />
+              )}
+            </div>
+          ))}
         </div>
-      </div>
+      </Panel>
     </AppLayout>
   );
 }

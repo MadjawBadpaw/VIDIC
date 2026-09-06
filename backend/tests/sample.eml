@@ -1,7 +1,15 @@
+Received: from smtp.evilhost.xyz (185.221.44.88)
+    by relay01.mailprovider.net with ESMTP;
+    Sun, 06 Sep 2026 08:58:12 +0000
+
+Received: from unknown.local (192.168.1.55)
+    by smtp.evilhost.xyz with SMTP;
+    Sun, 06 Sep 2026 08:57:40 +0000
+
 From: "Microsoft Security" <security@microsoft-login.net>
 To: victim@example.com
 Subject: Urgent: Verify your account
-Date: Sat, 6 Sep 2026 09:14:00 +0000
+Date: Sun, 06 Sep 2026 09:14:00 +0000
 Return-Path: <security@microsoft-login.net>
 Received-SPF: fail
 DKIM-Signature: invalid

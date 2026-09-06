@@ -111,7 +111,7 @@ export default function Upload() {
             <IOC title="Email Addresses" items={result.iocs.emails} />
             <IOC title="IP Addresses" items={result.iocs.ips} />
           </Panel>
-
+          
           <Panel title="Attachments" subtitle="FILE ANALYSIS">
             {result.attachments.length === 0 ? (
               <p className="text-zinc-500 text-sm">
@@ -133,7 +133,37 @@ export default function Upload() {
               ))
             )}
           </Panel>
+          <Panel title="Mail Routing Analysis" subtitle="SMTP HOPS">
+  <div className="space-y-6">
 
+    <div>
+      <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
+        Originating Public IP
+      </p>
+
+      <code className="text-blue-400 text-sm">
+        {result.routing.origin_ip || "Unavailable"}
+      </code>
+    </div>
+
+    {result.routing.received_chain.map((hop) => (
+      <div
+        key={hop.hop}
+        className="rounded-xl border border-[#27272A] bg-[#0D0D10] p-4"
+      >
+        <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
+          Hop {hop.hop}
+        </p>
+
+        <h3 className="mt-2 font-medium">{hop.server}</h3>
+
+        <p className="text-sm text-zinc-400">{hop.ip}</p>
+
+        <p className="mt-2 text-xs text-zinc-500">{hop.timestamp}</p>
+      </div>
+    ))}
+  </div>
+</Panel>
           <Panel title="Body Preview" subtitle="FIRST 600 CHARACTERS">
             <pre className="whitespace-pre-wrap text-sm text-zinc-300 leading-7">
               {result.body_preview}
