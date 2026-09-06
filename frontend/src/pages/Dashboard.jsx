@@ -4,128 +4,76 @@ import Badge from "../components/ui/Badge";
 import ThreatChart from "../components/charts/ThreatChart";
 
 const metrics = [
-  { label: "Threats Today", value: "42", delta: "+6" },
-  { label: "Investigations", value: "324", delta: "+18" },
-  { label: "Malicious URLs", value: "61", delta: "+11" },
-  { label: "Attachments Flagged", value: "18", delta: "+2" },
+  ["Threats Today", "42", "+6"],
+  ["Investigations", "324", "+18"],
+  ["Malicious URLs", "61", "+11"],
+  ["Attachments Flagged", "18", "+2"],
 ];
 
 const investigations = [
-  {
-    sender: "paypal-security.com",
-    verdict: "Phishing",
-    risk: 92,
-    spf: "Pass",
-    dkim: "Fail",
-    time: "14:22",
-  },
-  {
-    sender: "accounts.microsoft-login.net",
-    verdict: "Spoofing",
-    risk: 87,
-    spf: "Fail",
-    dkim: "Fail",
-    time: "13:18",
-  },
-  {
-    sender: "github-alerts.co",
-    verdict: "Suspicious",
-    risk: 68,
-    spf: "Pass",
-    dkim: "Pass",
-    time: "11:47",
-  },
-  {
-    sender: "amazon-support.io",
-    verdict: "Malware",
-    risk: 95,
-    spf: "Fail",
-    dkim: "Fail",
-    time: "10:03",
-  },
-  {
-    sender: "office365-update.org",
-    verdict: "Credential Harvesting",
-    risk: 90,
-    spf: "Pass",
-    dkim: "Fail",
-    time: "09:21",
-  },
-];
-
-const feeds = [
-  "New phishing campaign targeting Microsoft 365 users.",
-  "3 malicious IPs added to IOC feed.",
-  "Credential harvesting domains increased by 18%.",
-  "ZIP attachment malware observed in latest samples.",
+  ["paypal-security.com", "Phishing", "92", "Pass", "Fail", "14:22"],
+  ["accounts.microsoft-login.net", "Spoofing", "87", "Fail", "Fail", "13:18"],
+  ["github-alerts.co", "Suspicious", "68", "Pass", "Pass", "11:47"],
+  ["amazon-support.io", "Malware", "95", "Fail", "Fail", "10:03"],
+  ["office365-update.org", "Credential Harvesting", "90", "Pass", "Fail", "09:21"],
 ];
 
 export default function Dashboard() {
   return (
     <AppLayout>
-      {/* Header */}
-
-      <section className="mb-10">
-        <p className="uppercase tracking-[0.25em] text-[11px] text-zinc-500">
+      {/* HEADER */}
+      <section className="mb-14">
+        <p className="mb-4 text-[11px] uppercase tracking-[0.3em] text-zinc-500">
           Security Operations Console
         </p>
 
-        <div className="mt-3 flex items-end justify-between">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-semibold tracking-tight">
+            <h1 className="text-[40px] font-semibold tracking-tight">
               Threat Investigation Dashboard
             </h1>
 
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-400">
               Monitor phishing investigations, inspect suspicious email traffic,
               analyze indicators of compromise, and generate AI-powered reports
               completely offline.
             </p>
           </div>
 
-          <Badge variant="green">Online</Badge>
+          <Badge variant="green">ONLINE</Badge>
         </div>
       </section>
 
-      {/* Metrics */}
-
-      <section className="grid grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
-        {metrics.map((item) => (
-          <Panel key={item.label}>
-            <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">
-              {item.label}
+      {/* METRICS */}
+      <section className="mb-14 grid grid-cols-2 gap-6 xl:grid-cols-4">
+        {metrics.map(([label, value, delta]) => (
+          <Panel key={label}>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+              {label}
             </p>
 
-            <div className="mt-3 flex items-end justify-between">
-              <h2 className="text-4xl font-semibold">{item.value}</h2>
+            <div className="mt-5 flex items-end justify-between">
+              <h2 className="text-4xl font-semibold">{value}</h2>
 
-              <span className="text-sm text-red-400">{item.delta}</span>
+              <span className="text-sm text-red-400">{delta}</span>
             </div>
           </Panel>
         ))}
       </section>
 
-      {/* Chart */}
-
-      <section className="mb-10">
-        <Panel
-          title="Threat Activity"
-          subtitle="LAST 7 DAYS"
-        >
+      {/* CHART */}
+      <section className="mb-14">
+        <Panel title="Threat Activity" subtitle="LAST 7 DAYS">
           <ThreatChart />
         </Panel>
       </section>
 
-      {/* Investigation Table */}
-
-      <section className="mb-10">
-        <Panel
-          title="Active Investigations"
-          subtitle="LATEST EMAIL ANALYSIS"
-        >
+      {/* TABLE */}
+      <section className="mb-14">
+        <Panel title="Active Investigations" subtitle="LATEST ANALYSIS">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-zinc-500 uppercase text-xs border-b border-[#27272A]">
+              <thead className="border-b border-[#27272A] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
                 <tr>
                   <th className="py-4 text-left font-medium">Sender</th>
                   <th className="text-left font-medium">Verdict</th>
@@ -139,48 +87,26 @@ export default function Dashboard() {
               <tbody>
                 {investigations.map((row) => (
                   <tr
-                    key={row.sender}
+                    key={row[0]}
                     className="border-b border-[#1A1A1D] hover:bg-[#141416]"
                   >
-                    <td className="py-5 font-medium">{row.sender}</td>
+                    <td className="py-5 font-medium">{row[0]}</td>
 
                     <td>
-                      <Badge
-                        variant={
-                          row.risk > 90
-                            ? "red"
-                            : row.risk > 75
-                            ? "blue"
-                            : "neutral"
-                        }
-                      >
-                        {row.verdict}
-                      </Badge>
+                      <Badge variant="red">{row[1]}</Badge>
                     </td>
 
-                    <td className="text-red-400">{row.risk}</td>
+                    <td className="text-red-400">{row[2]}</td>
 
-                    <td
-                      className={
-                        row.spf === "Pass"
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }
-                    >
-                      {row.spf}
+                    <td className={row[3] === "Pass" ? "text-green-400" : "text-red-400"}>
+                      {row[3]}
                     </td>
 
-                    <td
-                      className={
-                        row.dkim === "Pass"
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }
-                    >
-                      {row.dkim}
+                    <td className={row[4] === "Pass" ? "text-green-400" : "text-red-400"}>
+                      {row[4]}
                     </td>
 
-                    <td className="text-right text-zinc-500">{row.time}</td>
+                    <td className="text-right text-zinc-500">{row[5]}</td>
                   </tr>
                 ))}
               </tbody>
@@ -189,87 +115,49 @@ export default function Dashboard() {
         </Panel>
       </section>
 
-      {/* Bottom Panels */}
-
-      <section className="grid xl:grid-cols-3 gap-6">
-
-        {/* Threat Feed */}
-
-        <Panel
-          title="Threat Feed"
-          subtitle="LIVE IOC SUMMARY"
-        >
-          <div className="space-y-4">
-            {feeds.map((feed) => (
-              <div
-                key={feed}
-                className="border-l border-blue-500 pl-4 text-sm text-zinc-300"
-              >
-                {feed}
-              </div>
-            ))}
+      {/* LOWER GRID */}
+      <section className="grid gap-6 xl:grid-cols-3">
+        <Panel title="Threat Feed" subtitle="LIVE IOC SUMMARY">
+          <div className="space-y-5 text-sm leading-6 text-zinc-300">
+            <p>New phishing campaign targeting Microsoft 365 users.</p>
+            <p>3 malicious IPs added to IOC feed.</p>
+            <p>Credential harvesting domains increased by 18%.</p>
+            <p>ZIP attachment malware observed in latest samples.</p>
           </div>
         </Panel>
 
-        {/* AI Summary */}
-
-        <Panel
-          title="AI Investigation Summary"
-          subtitle="QWEN INFERENCE"
-        >
+        <Panel title="AI Summary" subtitle="LATEST INFERENCE">
           <p className="text-sm leading-7 text-zinc-400">
-            Most recent phishing samples share visual similarity with Microsoft
-            365 credential harvesting campaigns. Common indicators include failed
-            DKIM validation, mismatched sender domains, shortened URLs, and ZIP
-            attachments requesting authentication.
+            Recent phishing samples share characteristics with Microsoft 365
+            credential harvesting campaigns, including failed DKIM validation,
+            spoofed sender domains, shortened URLs and malicious ZIP attachments.
           </p>
 
-          <div className="mt-6 space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Confidence</span>
-
-              <span>91%</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Model</span>
-
-              <span>Local LLM</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Status</span>
-
-              <Badge variant="green">Ready</Badge>
-            </div>
+          <div className="mt-6 flex items-center justify-between border-t border-[#27272A] pt-4 text-sm">
+            <span className="text-zinc-500">Confidence</span>
+            <span className="font-medium">91%</span>
           </div>
         </Panel>
 
-        {/* Infrastructure */}
-
-        <Panel
-          title="Infrastructure Status"
-          subtitle="SERVICES"
-        >
-          <Service name="FastAPI Backend" status="Running" />
-          <Service name="PostgreSQL" status="Connected" />
-          <Service name="Neo4j Graph" status="Idle" />
-          <Service name="Ollama Runtime" status="Running" />
+        <Panel title="Infrastructure" subtitle="SERVICE STATUS">
+          <Status name="FastAPI Backend" />
+          <Status name="PostgreSQL" />
+          <Status name="Neo4j Graph" />
+          <Status name="Ollama Runtime" />
         </Panel>
       </section>
     </AppLayout>
   );
 }
 
-function Service({ name, status }) {
+function Status({ name }) {
   return (
-    <div className="flex items-center justify-between border-b border-[#1A1A1D] py-4">
-      <span className="text-sm text-zinc-400">{name}</span>
+    <div className="flex items-center justify-between border-b border-[#1A1A1D] py-4 text-sm">
+      <span className="text-zinc-400">{name}</span>
 
       <div className="flex items-center gap-2">
         <div className="h-2 w-2 rounded-full bg-green-500" />
-
-        <span className="text-sm">{status}</span>
+        Running
       </div>
     </div>
   );

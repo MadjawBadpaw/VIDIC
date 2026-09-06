@@ -9,20 +9,22 @@ export default function Panel({
       className={`rounded-xl border border-[#27272A] bg-[#111113] ${className}`}
     >
       {(title || subtitle) && (
-        <div className="border-b border-[#27272A] px-6 py-5">
+        <header className="border-b border-[#27272A] px-6 pt-6 pb-4">
           {subtitle && (
-            <p className="text-[11px] uppercase tracking-[0.2em] text-zinc-500 mb-2">
+            <p className="mb-2 text-[11px] uppercase tracking-[0.25em] text-zinc-500">
               {subtitle}
             </p>
           )}
 
           {title && (
-            <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+            <h2 className="text-lg font-semibold tracking-tight">
+              {title}
+            </h2>
           )}
-        </div>
+        </header>
       )}
 
-      <div className="p-6">{children}</div>
+      <div className="px-6 py-5">{children}</div>
     </section>
   );
 }
