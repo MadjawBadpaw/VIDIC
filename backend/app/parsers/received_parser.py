@@ -1,58 +1,115 @@
 import re
+import ipaddress
+from email.utils import parsedate_to_datetime
+from datetime import timezone
 
-IP_REGEX = r"(?:\d{1,3}\.){3}\d{1,3}"
+# IPv4 regex
+IP_REGEX = re.compile(r"(?:\d{1,3}\.){3}\d{1,3}")
+
+
+def _classify_ip(ip: str) -> str:
+    """Return public/private/loopback/etc."""
+
+    try:
+        addr = ipaddress.ip_address(ip)
+
+        if addr.is_private:
+            return "private"
+        if addr.is_loopback:
+            return "loopback"
+        if addr.is_link_local:
+            return "link_local"
+        if addr.is_multicast:
+            return "multicast"
+        if addr.is_reserved:
+            return "reserved"
+
+        return "public"
+
+    except Exception:
+        return "unknown"
+
+
+def _extract_server(header: str) -> str:
+    """
+    Extract sending mail server.
+    Example:
+    from smtp.gmail.com (209.85.xxx.xxx)
+    """
+
+    match = re.search(r"from\s+([^\s(;]+)", header, re.IGNORECASE)
+
+    if match:
+        return match.group(1)
+
+    return "unknown"
+
+
+def _extract_timestamp(header: str):
+    """Parse timestamp after the last semicolon."""
+
+    try:
+        if ";" not in header:
+            raise ValueError()
+
+        raw_date = header.rsplit(";", 1)[1].strip()
+
+        dt = parsedate_to_datetime(raw_date)
+
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+
+        return {
+            "iso": dt.isoformat(),
+            "display": dt.strftime("%d %b %Y • %H:%M UTC"),
+        }
+
+    except Exception:
+        return {
+            "iso": None,
+            "display": None,
+        }
 
 
 def parse_received_headers(message):
+    """
+    Parse RFC5322 Received headers into routing hops.
+    Returns newest hop first (same order as email headers).
+    """
 
-    received_headers = message.get_all("Received", [])
+    received_headers = message.get_all("Received") or []
 
-    hops = []
+    chain = []
 
-    for index, header in enumerate(received_headers, start=1):
+    for hop, header in enumerate(received_headers, start=1):
 
-        ip_match = re.search(IP_REGEX, header)
-        ip = ip_match.group(0) if ip_match else None
+        ips = IP_REGEX.findall(header)
 
-        server = "Unknown"
+        selected_ip = None
+        ip_type = "unknown"
 
-        if "from " in header:
-            try:
-                server = header.split("from ")[1].split(" ")[0]
-            except Exception:
-                pass
+        # Prefer first public IP. If none exist, keep first private IP.
+        for ip in ips:
+            kind = _classify_ip(ip)
 
-        timestamp = None
+            if kind == "public":
+                selected_ip = ip
+                ip_type = kind
+                break
 
-        if ";" in header:
-            timestamp = header.split(";")[-1].strip()
+            if selected_ip is None:
+                selected_ip = ip
+                ip_type = kind
 
-        hops.append(
+        chain.append(
             {
-                "hop": index,
-                "server": server,
-                "ip": ip,
-                "timestamp": timestamp,
+                "hop": hop,
+                "server": _extract_server(header),
+                "ip": selected_ip,
+                "ip_type": ip_type,
+                "timestamp": _extract_timestamp(header),
                 "raw": header,
             }
         )
 
-    return hops
-
-
-def get_origin_ip(hops):
-    for hop in reversed(hops):
-        ip = hop["ip"]
-
-        if not ip:
-            continue
-
-        if not (
-            ip.startswith("10.")
-            or ip.startswith("192.168.")
-            or ip.startswith("172.")
-            or ip.startswith("127.")
-        ):
-            return ip
-
-    return None
+    return chain
