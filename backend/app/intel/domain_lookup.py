@@ -451,6 +451,12 @@ def lookup_ip(ip: str):
                 "leaseweb",
                 "contabo",
                 "scaleway",
+                "rackspace",
+                "hostinger",
+                "server",
+                "hosting",
+                "vps",
+                "cloud",
             )
 
             hosting = any(
