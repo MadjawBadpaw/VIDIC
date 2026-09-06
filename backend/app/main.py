@@ -14,9 +14,16 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Wildcard origins ("*") combined with allow_credentials=True is invalid per
+# the CORS spec and most browsers will reject it outright. Pin this to the
+# actual dev/prod frontend origin(s) instead. Update this list (or move it
+# to an env var) when you deploy.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
