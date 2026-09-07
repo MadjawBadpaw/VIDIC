@@ -20,20 +20,20 @@ MAX_EMAIL_SIZE = 10 * 1024 * 1024  # 10 MB
     description=(
         "Upload an RFC5322 (.eml) email and perform an online phishing "
         "investigation with live threat intelligence enrichment using "
-        "RDAP, IPWhois, VirusTotal and URLhaus."
+        "RDAP, IPWhois, VirusTotal, URLhaus and AbuseIPDB."
     ),
 )
 def upload_email(file: UploadFile = File(...)):
     """
     Accepts an RFC5322 .eml email file and returns a complete forensic analysis.
 
-    NOTE: this is a plain `def`, not `async def`. FastAPI runs sync `def`
-    routes in a threadpool automatically. Every intel lookup underneath
-    parse_email() (RDAP, IPWhois, VirusTotal, URLhaus) is a blocking
-    synchronous call — VirusTotal alone can block for ~10s per URL via
-    time.sleep(). If this stayed `async def`, all of that blocking work
-    would run on the single event loop and stall every other request
-    (including /health) for the duration of the lookup.
+    CHANGED: this is now a plain `def`, not `async def`. FastAPI runs sync
+    `def` routes in a threadpool automatically. parse_email() makes five
+    sequential blocking network calls (RDAP, IPWhois, VirusTotal, URLhaus,
+    AbuseIPDB) — VirusTotal alone can block ~10s while polling for
+    analysis results. Under the old `async def`, all of that ran on the
+    single event loop and would stall every other request (including
+    /health) for the full duration of one upload.
     """
 
     if not file.filename.lower().endswith(".eml"):
@@ -76,4 +76,5 @@ def health():
         "message": "VIDIC Backend API is running.",
         "version": "1.0.0",
         "status": "healthy",
+        "intel_providers": ["RDAP", "IPWhois", "VirusTotal", "URLhaus", "AbuseIPDB"],
     }

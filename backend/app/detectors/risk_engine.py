@@ -35,20 +35,18 @@ def calculate_risk(
         reasons.append("DMARC authentication failed (+20)")
 
     # ---------- Return-Path mismatch ----------
+    #
+    # CHANGED: this used to recompute the from/return-path domain
+    # comparison inline (duplicating logic also present in
+    # email_parser.py). It now reads the single precomputed value from
+    # email_parser.py's compute_return_path_mismatch(). True = mismatch,
+    # False = confirmed match, None = couldn't be determined (missing
+    # headers) — None is intentionally treated as "no penalty", not
+    # "assume safe", since we simply don't have enough data either way.
 
-    return_path = authentication.get("return_path")
-    sender = headers.get("from")
-
-    if return_path and sender and "@" in sender:
-        try:
-            rp_domain = return_path.split("@")[-1].replace("<", "").replace(">", "")
-            sender_domain = sender.split("@")[-1].replace("<", "").replace(">", "")
-
-            if rp_domain.lower() != sender_domain.lower():
-                score += 20
-                reasons.append("Return-Path domain differs from sender (+20)")
-        except Exception:
-            pass
+    if authentication.get("return_path_mismatch") is True:
+        score += 20
+        reasons.append("Return-Path domain differs from sender (+20)")
 
     # ---------- URLs ----------
 
@@ -58,7 +56,6 @@ def calculate_risk(
         url_points = min(len(urls) * 5, 15)
         score += url_points
         reasons.append(f"{len(urls)} URL(s) detected (+{url_points})")
-
 
     # ---------- Attachments ----------
 
@@ -85,17 +82,34 @@ def calculate_risk(
             reasons.append(f"Dangerous attachment ({ext}) (+15)")
 
     # ---------- Domain Intelligence ----------
+    #
+    # CHANGED: age is now scored on a tiered scale using age_days
+    # directly, instead of only the binary "recent_domain" status flag.
+    # <30 days keeps its original +10 (not +15 — that was a mistake in
+    # an earlier draft of this file that was caught and corrected before
+    # ever being used). 30-90 and 90-365 day bands are new.
 
     for domain in domain_intelligence.get("domains", []):
         status = domain.get("status")
+        age_days = domain.get("age_days")
 
         if status == "not_registered":
             score += 15
             reasons.append("Domain is not currently registered (+15)")
+            continue
 
-        elif status == "recent_domain":
+        if age_days is None:
+            continue
+
+        if age_days < 30:
             score += 10
-            reasons.append("Recently registered domain (+10)")
+            reasons.append(f"Recently registered domain, {age_days} day(s) old (+10)")
+        elif age_days < 90:
+            score += 5
+            reasons.append(f"Domain registered {age_days} day(s) ago (+5)")
+        elif age_days < 365:
+            score += 2
+            reasons.append(f"Domain registered {age_days} day(s) ago (+2)")
 
     # ---------- IP Intelligence ----------
 
@@ -104,6 +118,26 @@ def calculate_risk(
             score += 10
             reasons.append("Origin IP belongs to a hosting provider (+10)")
 
+        # NEW: AbuseIPDB was already being fetched and attached to each
+        # IP (see intel_service.py), but nothing here ever read it — it
+        # was informational only. This is the fix.
+        abuse = ip.get("abuseipdb") or {}
+        confidence = abuse.get("abuse_confidence_score")
+
+        if isinstance(confidence, (int, float)):
+            if confidence >= 90:
+                score += 25
+                reasons.append(f"AbuseIPDB confidence {confidence}% (+25)")
+            elif confidence >= 70:
+                score += 20
+                reasons.append(f"AbuseIPDB confidence {confidence}% (+20)")
+            elif confidence >= 40:
+                score += 10
+                reasons.append(f"AbuseIPDB confidence {confidence}% (+10)")
+            elif confidence >= 1:
+                score += 5
+                reasons.append(f"AbuseIPDB confidence {confidence}% (+5)")
+
     # ---------- VirusTotal Reputation ----------
 
     for _, rep in reputation.items():
@@ -111,6 +145,7 @@ def calculate_risk(
 
         malicious = vt.get("malicious", 0)
         suspicious = vt.get("suspicious", 0)
+        vt_reputation = vt.get("reputation", 0)
 
         if malicious > 0:
             points = min(25, malicious * 5)
@@ -120,6 +155,15 @@ def calculate_risk(
         elif suspicious > 0:
             score += 10
             reasons.append("VirusTotal flagged URL as suspicious (+10)")
+
+        # NEW: VT's own community reputation score is a separate signal
+        # from the malicious/suspicious engine counts above — a URL can
+        # have zero detections and still carry a negative reputation.
+        # This was being fetched and returned in the API response, but
+        # never scored.
+        if isinstance(vt_reputation, (int, float)) and vt_reputation < 0:
+            score += 10
+            reasons.append(f"VirusTotal community reputation is negative ({vt_reputation}) (+10)")
 
     # ---------- URLhaus Reputation ----------
 

@@ -6,19 +6,19 @@ export default function Button({
 }) {
   const variants = {
     primary:
-      "bg-blue-600 hover:bg-blue-500 text-white border-transparent",
+      "bg-[var(--accent)] hover:bg-[var(--accent-strong)] text-[#04120F] border-transparent font-semibold",
 
     secondary:
-      "bg-[#17171A] hover:bg-[#1F1F22] text-zinc-200 border-[#27272A]",
+      "bg-[var(--panel-hover)] hover:bg-[var(--border)] text-[var(--text)] border-[var(--border)]",
 
     ghost:
-      "bg-transparent hover:bg-[#17171A] text-zinc-300 border-transparent",
+      "bg-transparent hover:bg-[var(--panel-hover)] text-[var(--muted)] border-transparent",
   };
 
   return (
     <button
       {...props}
-      className={`border rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${variants[variant]} ${className}`}
+      className={`border rounded-[var(--radius-sm)] px-4 py-2.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
     >
       {children}
     </button>

@@ -5,15 +5,40 @@
 @import "tailwindcss";
 
 :root{
-  --bg:#09090B;
-  --panel:#111113;
-  --panel-hover:#17171A;
-  --border:#27272A;
-  --text:#FAFAFA;
-  --muted:#A1A1AA;
-  --accent:#2563EB;
-  --danger:#EF4444;
-  --success:#22C55E;
+  /* Surface */
+  --bg:#0A0D12;
+  --panel:#11151C;
+  --panel-hover:#161B24;
+  --border:#1E2530;
+  --border-strong:#2A3340;
+
+  /* Text */
+  --text:#E7EAEE;
+  --muted:#8A94A3;
+  --muted-dim:#5C6675;
+
+  /* Action / navigation — one accent, used deliberately */
+  --accent:#2DD4BF;
+  --accent-strong:#14B8A6;
+  --accent-soft:rgba(45,212,191,0.1);
+
+  /* Severity ramp — matches the backend risk-engine thresholds
+     (>=80 critical, >=60 high, >=30 medium, else low) so the UI
+     never disagrees with the actual score. */
+  --critical:#F43F5E;
+  --critical-soft:rgba(244,63,94,0.1);
+  --high:#FB923C;
+  --high-soft:rgba(251,146,60,0.1);
+  --medium:#FACC15;
+  --medium-soft:rgba(250,204,21,0.1);
+  --low:#34D399;
+  --low-soft:rgba(52,211,153,0.1);
+
+  /* One radius scale, used on purpose */
+  --radius-sm:8px;
+  --radius-md:12px;
+
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
 }
 
 *{
@@ -34,6 +59,10 @@ body{
   -moz-osx-font-smoothing:grayscale;
 }
 
+code, pre, .font-data{
+  font-family:var(--font-mono);
+}
+
 ::-webkit-scrollbar{
   width:8px;
 }
@@ -43,12 +72,12 @@ body{
 }
 
 ::-webkit-scrollbar-thumb{
-  background:#27272A;
+  background:var(--border);
   border-radius:999px;
 }
 
 ::-webkit-scrollbar-thumb:hover{
-  background:#3F3F46;
+  background:var(--border-strong);
 }
 
 input{
@@ -57,4 +86,16 @@ input{
 
 button{
   cursor:pointer;
+}
+
+:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{
+    animation-duration:0.001ms !important;
+    transition-duration:0.001ms !important;
+  }
 }

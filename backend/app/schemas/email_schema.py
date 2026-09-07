@@ -24,6 +24,12 @@ class Headers(BaseModel):
     date: Optional[str] = None
     message_id: Optional[str] = None
 
+    # Parsed from `from_` so the frontend doesn't have to re-parse a raw
+    # "Display Name <email@domain>" string itself.
+    from_email: Optional[str] = None
+    from_domain: Optional[str] = None
+    display_name: Optional[str] = None
+
     model_config = {"populate_by_name": True}
 
 
@@ -32,6 +38,10 @@ class Authentication(BaseModel):
     spf: Optional[str] = None
     dkim: Optional[str] = None
     dmarc: Optional[str] = None
+    return_path_mismatch: Optional[bool] = None
+
+    # Parsed from return_path for the same reason as headers.from_domain.
+    return_path_domain: Optional[str] = None
 
 
 # ==========================================================
@@ -109,28 +119,56 @@ class DomainInfo(BaseModel):
     created: Optional[str] = None
     age_days: Optional[int] = None
 
-    # Whether the domain was registered within the recent-domain
-    # threshold calculated by the domain intelligence module.
-    is_recent_domain: Optional[bool] = None
+    # Keep if you're using recent-domain detection.
+    is_recent_domain: bool = False
 
     tld: str
     status: str
 
 
+# ==========================================================
+# AbuseIPDB Intelligence
+# ==========================================================
+
+class AbuseIPDBInfo(BaseModel):
+    status: str
+
+    abuse_confidence_score: Optional[int] = None
+    country: Optional[str] = None
+    isp: Optional[str] = None
+    usage_type: Optional[str] = None
+    reports: Optional[int] = None
+    last_reported: Optional[str] = None
+
+
+# ==========================================================
+# IP Intelligence
+# ==========================================================
+
 class IPInfo(BaseModel):
     ip: str
+
     asn: Optional[str] = None
     organization: Optional[str] = None
     network_country: Optional[str] = None
     cidr: Optional[str] = None
     network_name: Optional[str] = None
+
     hosting: Optional[bool] = None
     status: str
+
+    abuseipdb: Optional[AbuseIPDBInfo] = None
 
 
 class DomainIntelligence(BaseModel):
     online_lookup: bool
-    lookup_provider: str
+
+    # CHANGED: `lookup_provider` removed. It was a hardcoded string
+    # ("RDAP + IPWhois + AbuseIPDB + VirusTotal + URLhaus") that never
+    # reflected what actually ran for a given request — if, say,
+    # AbuseIPDB's API key were missing and it silently returned
+    # "unavailable", this field would still falsely claim it ran. Static
+    # info like this belongs on /health, not on a per-request response.
     domains: list[DomainInfo]
     ips: list[IPInfo]
 
@@ -153,7 +191,7 @@ class URLHausReputation(BaseModel):
     status: str
     threat: Optional[str] = None
     url_status: Optional[str] = None
-    tags: list[str] = Field(default_factory=list)
+    tags: list[str] = []
     reporter: Optional[str] = None
 
 
@@ -195,3 +233,13 @@ class HealthResponse(BaseModel):
     message: str
     version: str
     status: str
+
+    # NEW: static description of which intel providers this build wires
+    # up. Lives here instead of on every analysis response.
+    intel_providers: list[str] = [
+        "RDAP",
+        "IPWhois",
+        "VirusTotal",
+        "URLhaus",
+        "AbuseIPDB",
+    ]

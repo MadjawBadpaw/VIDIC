@@ -1,49 +1,59 @@
 import AppLayout from "../components/layout/AppLayout";
+import Panel from "../components/ui/Panel";
+import Badge from "../components/ui/Badge";
 import { Cpu, Database, Moon } from "lucide-react";
+
+const settings = [
+  {
+    icon: Cpu,
+    title: "AI summary model",
+    value: "Not yet integrated",
+    status: "planned",
+  },
+  {
+    icon: Database,
+    title: "Database",
+    value: "In-memory only — nothing persists yet",
+    status: "planned",
+  },
+  {
+    icon: Moon,
+    title: "Theme",
+    value: "Dark (fixed)",
+    status: "active",
+  },
+];
 
 export default function Settings() {
   return (
     <AppLayout>
-      <div className="mt-8">
-        <p className="text-blue-400 uppercase text-sm tracking-widest">
-          Dashboard / Settings
+      <section className="mb-10">
+        <h1 className="text-[32px] font-semibold tracking-tight text-[var(--text)]">
+          Settings
+        </h1>
+        <p className="mt-3 text-sm text-[var(--muted)]">
+          Current build status of each subsystem.
         </p>
+      </section>
 
-        <h1 className="text-4xl font-bold mt-2">Settings</h1>
+      <div className="grid gap-5 md:grid-cols-3">
+        {settings.map((item) => (
+          <Panel key={item.title}>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="rounded-[var(--radius-sm)] bg-[var(--panel-hover)] p-2 text-[var(--muted)]">
+                <item.icon size={18} />
+              </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mt-8">
-          <SettingCard
-            icon={<Cpu className="text-green-400" />}
-            title="AI Model"
-            value="Qwen2.5 7B (Ollama)"
-          />
+              <Badge variant={item.status === "active" ? "low" : "neutral"}>
+                {item.status === "active" ? "Active" : "Planned"}
+              </Badge>
+            </div>
 
-          <SettingCard
-            icon={<Database className="text-blue-400" />}
-            title="Database"
-            value="PostgreSQL Connected"
-          />
-
-          <SettingCard
-            icon={<Moon className="text-purple-400" />}
-            title="Theme"
-            value="Dark Mode"
-          />
-        </div>
+            <h2 className="text-sm font-semibold text-[var(--text)]">{item.title}</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">{item.value}</p>
+          </Panel>
+        ))}
       </div>
     </AppLayout>
-  );
-}
-
-function SettingCard({ icon, title, value }) {
-  return (
-    <div className="rounded-2xl bg-[#111827] border border-slate-800 p-6">
-      <div className="flex items-center gap-3 mb-3">
-        {icon}
-        <h2 className="font-semibold text-lg">{title}</h2>
-      </div>
-
-      <p className="text-slate-400">{value}</p>
-    </div>
   );
 }

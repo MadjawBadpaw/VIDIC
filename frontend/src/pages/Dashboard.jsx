@@ -1,81 +1,65 @@
 import AppLayout from "../components/layout/AppLayout";
 import Panel from "../components/ui/Panel";
-import Badge from "../components/ui/Badge";
+import Badge, { severityFromScore } from "../components/ui/Badge";
 import ThreatChart from "../components/charts/ThreatChart";
 
 const metrics = [
-  ["Threats Today", "42", "+6"],
+  ["Threats today", "42", "+6"],
   ["Investigations", "324", "+18"],
   ["Malicious URLs", "61", "+11"],
-  ["Attachments Flagged", "18", "+2"],
+  ["Attachments flagged", "18", "+2"],
 ];
 
 const investigations = [
-  ["paypal-security.com", "Phishing", "92", "Pass", "Fail", "14:22"],
-  ["accounts.microsoft-login.net", "Spoofing", "87", "Fail", "Fail", "13:18"],
-  ["github-alerts.co", "Suspicious", "68", "Pass", "Pass", "11:47"],
-  ["amazon-support.io", "Malware", "95", "Fail", "Fail", "10:03"],
-  ["office365-update.org", "Credential Harvesting", "90", "Pass", "Fail", "09:21"],
+  { sender: "paypal-security.com", verdict: "Phishing", score: 92, spf: "Pass", dkim: "Fail", time: "14:22" },
+  { sender: "accounts.microsoft-login.net", verdict: "Spoofing", score: 87, spf: "Fail", dkim: "Fail", time: "13:18" },
+  { sender: "github-alerts.co", verdict: "Suspicious", score: 68, spf: "Pass", dkim: "Pass", time: "11:47" },
+  { sender: "amazon-support.io", verdict: "Malware", score: 95, spf: "Fail", dkim: "Fail", time: "10:03" },
+  { sender: "office365-update.org", verdict: "Credential harvesting", score: 90, spf: "Pass", dkim: "Fail", time: "09:21" },
 ];
 
 export default function Dashboard() {
   return (
     <AppLayout>
-      {/* HEADER */}
-      <section className="mb-14">
-        <p className="mb-4 text-[11px] uppercase tracking-[0.3em] text-zinc-500">
-          Security Operations Console
-        </p>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-[40px] font-semibold tracking-tight">
-              Threat Investigation Dashboard
-            </h1>
-
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-400">
-              Monitor phishing investigations, inspect suspicious email traffic,
-              analyze indicators of compromise, and generate AI-powered reports
-              completely offline.
-            </p>
-          </div>
-
-          <Badge variant="green">ONLINE</Badge>
+      <section className="mb-12 flex items-center justify-between">
+        <div>
+          <h1 className="text-[32px] font-semibold tracking-tight text-[var(--text)]">
+            Threat investigation dashboard
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+            Monitor phishing investigations, inspect suspicious email traffic, and
+            review indicators of compromise.
+          </p>
         </div>
+
+        <Badge variant="accent" dot>Live sample data</Badge>
       </section>
 
-      {/* METRICS */}
-      <section className="mb-14 grid grid-cols-2 gap-6 xl:grid-cols-4">
+      <section className="mb-10 grid grid-cols-2 gap-5 xl:grid-cols-4">
         {metrics.map(([label, value, delta]) => (
-          <Panel key={label}>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-              {label}
-            </p>
-
-            <div className="mt-5 flex items-end justify-between">
-              <h2 className="text-4xl font-semibold">{value}</h2>
-
-              <span className="text-sm text-red-400">{delta}</span>
+          <Panel key={label} className="!py-0">
+            <p className="text-xs text-[var(--muted)]">{label}</p>
+            <div className="mt-4 flex items-end justify-between">
+              <h2 className="text-3xl font-semibold text-[var(--text)]">{value}</h2>
+              <span className="text-sm text-[var(--high)]">{delta}</span>
             </div>
           </Panel>
         ))}
       </section>
 
-      {/* CHART */}
-      <section className="mb-14">
-        <Panel title="Threat Activity" subtitle="LAST 7 DAYS">
+      <section className="mb-10">
+        <Panel title="Threat activity" subtitle="Last 7 days">
           <ThreatChart />
         </Panel>
       </section>
 
-      {/* TABLE */}
-      <section className="mb-14">
-        <Panel title="Active Investigations" subtitle="LATEST ANALYSIS">
+      <section className="mb-10">
+        <Panel title="Active investigations" subtitle="Most recent analyses, newest first">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b border-[#27272A] text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+              <thead className="border-b border-[var(--border)] text-xs text-[var(--muted)]">
                 <tr>
-                  <th className="py-4 text-left font-medium">Sender</th>
+                  <th className="py-3 text-left font-medium">Sender</th>
                   <th className="text-left font-medium">Verdict</th>
                   <th className="text-left font-medium">Risk</th>
                   <th className="text-left font-medium">SPF</th>
@@ -87,26 +71,30 @@ export default function Dashboard() {
               <tbody>
                 {investigations.map((row) => (
                   <tr
-                    key={row[0]}
-                    className="border-b border-[#1A1A1D] hover:bg-[#141416]"
+                    key={row.sender}
+                    className="border-b border-[var(--border)] last:border-none hover:bg-[var(--panel-hover)]"
                   >
-                    <td className="py-5 font-medium">{row[0]}</td>
+                    <td className="py-4 font-medium text-[var(--text)] font-data text-[13px]">
+                      {row.sender}
+                    </td>
 
                     <td>
-                      <Badge variant="red">{row[1]}</Badge>
+                      <Badge variant={severityFromScore(row.score)}>{row.verdict}</Badge>
                     </td>
 
-                    <td className="text-red-400">{row[2]}</td>
-
-                    <td className={row[3] === "Pass" ? "text-green-400" : "text-red-400"}>
-                      {row[3]}
+                    <td className="font-semibold" style={{ color: `var(--${severityFromScore(row.score)})` }}>
+                      {row.score}
                     </td>
 
-                    <td className={row[4] === "Pass" ? "text-green-400" : "text-red-400"}>
-                      {row[4]}
+                    <td className={row.spf === "Pass" ? "text-[var(--low)]" : "text-[var(--critical)]"}>
+                      {row.spf}
                     </td>
 
-                    <td className="text-right text-zinc-500">{row[5]}</td>
+                    <td className={row.dkim === "Pass" ? "text-[var(--low)]" : "text-[var(--critical)]"}>
+                      {row.dkim}
+                    </td>
+
+                    <td className="text-right text-[var(--muted)]">{row.time}</td>
                   </tr>
                 ))}
               </tbody>
@@ -115,50 +103,48 @@ export default function Dashboard() {
         </Panel>
       </section>
 
-      {/* LOWER GRID */}
-      <section className="grid gap-6 xl:grid-cols-3">
-        <Panel title="Threat Feed" subtitle="LIVE IOC SUMMARY">
-          <div className="space-y-5 text-sm leading-6 text-zinc-300">
+      <section className="grid gap-5 xl:grid-cols-3">
+        <Panel title="Threat feed" subtitle="Recent IOC activity">
+          <div className="space-y-4 text-sm leading-6 text-[var(--muted)]">
             <p>New phishing campaign targeting Microsoft 365 users.</p>
-            <p>3 malicious IPs added to IOC feed.</p>
-            <p>Credential harvesting domains increased by 18%.</p>
-            <p>ZIP attachment malware observed in latest samples.</p>
+            <p>3 malicious IPs added to the IOC feed.</p>
+            <p>Credential-harvesting domains up 18% week over week.</p>
+            <p>ZIP attachment malware observed in the latest samples.</p>
           </div>
         </Panel>
 
-        <Panel title="AI Summary" subtitle="LATEST INFERENCE">
-          <p className="text-sm leading-7 text-zinc-400">
+        <Panel title="Summary" subtitle="Pattern across recent samples">
+          <p className="text-sm leading-6 text-[var(--muted)]">
             Recent phishing samples share characteristics with Microsoft 365
-            credential harvesting campaigns, including failed DKIM validation,
-            spoofed sender domains, shortened URLs and malicious ZIP attachments.
+            credential-harvesting campaigns: failed DKIM validation, spoofed
+            sender domains, and malicious attachments.
           </p>
-
-          <div className="mt-6 flex items-center justify-between border-t border-[#27272A] pt-4 text-sm">
-            <span className="text-zinc-500">Confidence</span>
-            <span className="font-medium">91%</span>
-          </div>
         </Panel>
 
-        <Panel title="Infrastructure" subtitle="SERVICE STATUS">
-          <Status name="FastAPI Backend" />
-          <Status name="PostgreSQL" />
-          <Status name="Neo4j Graph" />
-          <Status name="Ollama Runtime" />
+        <Panel title="Local services">
+          <Status name="FastAPI backend" state="unknown" />
+          <Status name="PostgreSQL" state="not_connected" />
+          <Status name="AI summary model" state="not_connected" />
         </Panel>
       </section>
     </AppLayout>
   );
 }
 
-function Status({ name }) {
-  return (
-    <div className="flex items-center justify-between border-b border-[#1A1A1D] py-4 text-sm">
-      <span className="text-zinc-400">{name}</span>
+function Status({ name, state }) {
+  const config = {
+    running: { label: "Running", color: "var(--low)" },
+    not_connected: { label: "Not connected", color: "var(--muted-dim)" },
+    unknown: { label: "Not monitored", color: "var(--muted-dim)" },
+  }[state];
 
-      <div className="flex items-center gap-2">
-        <div className="h-2 w-2 rounded-full bg-green-500" />
-        Running
-      </div>
+  return (
+    <div className="flex items-center justify-between border-b border-[var(--border)] py-3.5 text-sm last:border-none">
+      <span className="text-[var(--muted)]">{name}</span>
+      <span className="flex items-center gap-2" style={{ color: config.color }}>
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: config.color }} />
+        {config.label}
+      </span>
     </div>
   );
 }

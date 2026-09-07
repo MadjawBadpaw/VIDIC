@@ -1,6 +1,7 @@
 import hashlib
 from email import policy
 from email.parser import BytesParser
+from email.utils import parseaddr
 
 from app.detectors.risk_engine import calculate_risk
 from app.intel.reputation import build_reputation
@@ -115,6 +116,51 @@ def extract_authentication(msg):
 
 
 # ==========================================================
+# Address Parsing
+# ==========================================================
+
+def parse_address(raw):
+    """
+    Parse a raw "Display Name <email@domain>" style header value into its
+    parts. Used for both the From header and the Return-Path header so
+    there's exactly one place this parsing happens, instead of two
+    separate implementations that could drift apart.
+
+    Returns (email, domain, display_name) — any of which may be None if
+    the header is missing or unparseable.
+    """
+
+    if not raw:
+        return None, None, None
+
+    try:
+        display_name, email = parseaddr(raw)
+        email = (email or "").lower().strip()
+        domain = email.split("@")[-1] if "@" in email else None
+
+        return email or None, domain or None, display_name or None
+
+    except Exception:
+        return None, None, None
+
+
+def compute_return_path_mismatch(from_domain, return_path_domain):
+    """
+    Compare the From domain against the Return-Path domain.
+
+    Returns:
+        True  -> domains differ (likely spoofing indicator)
+        False -> domains match
+        None  -> couldn't determine (one or both missing)
+    """
+
+    if not from_domain or not return_path_domain:
+        return None
+
+    return from_domain != return_path_domain
+
+
+# ==========================================================
 # Attachment Extraction
 # ==========================================================
 
@@ -161,7 +207,19 @@ def parse_email(email_bytes: bytes):
         "message_id": msg.get("Message-ID"),
     }
 
+    from_email, from_domain, display_name = parse_address(headers.get("from"))
+    headers["from_email"] = from_email
+    headers["from_domain"] = from_domain
+    headers["display_name"] = display_name
+
     authentication = extract_authentication(msg)
+
+    _, return_path_domain, _ = parse_address(authentication.get("return_path"))
+    authentication["return_path_domain"] = return_path_domain
+
+    authentication["return_path_mismatch"] = compute_return_path_mismatch(
+        from_domain, return_path_domain
+    )
 
     # Routing parser returns a LIST of hops.
     received_chain = parse_received_headers(msg)
@@ -181,14 +239,14 @@ def parse_email(email_bytes: bytes):
 
     # Risk engine
     risk = calculate_risk(
-    iocs=iocs,
-    headers=headers,
-    authentication=authentication,
-    routing=routing,
-    attachments=attachments,
-    domain_intelligence=domain_intelligence,
-    reputation=reputation,
-)
+        iocs=iocs,
+        headers=headers,
+        authentication=authentication,
+        routing=routing,
+        attachments=attachments,
+        domain_intelligence=domain_intelligence,
+        reputation=reputation,
+    )
 
     metadata = {
         "email_sha256": hashlib.sha256(email_bytes).hexdigest(),

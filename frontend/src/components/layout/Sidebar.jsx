@@ -2,16 +2,17 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutGrid,
   Mail,
-  Search,
   Network,
   FileText,
   Settings,
 } from "lucide-react";
 
+// "Investigations" was previously a separate nav item pointing at the same
+// /reports route as "Reports" — a leftover duplicate rather than a real
+// page. Removed until there's an actual investigations-list view to link.
 const items = [
   { label: "Dashboard", path: "/", icon: LayoutGrid },
   { label: "Email Upload", path: "/upload", icon: Mail },
-  { label: "Investigations", path: "/reports", icon: Search },
   { label: "Attack Graph", path: "/graph", icon: Network },
   { label: "Reports", path: "/reports", icon: FileText },
   { label: "Settings", path: "/settings", icon: Settings },
@@ -19,17 +20,16 @@ const items = [
 
 export default function Sidebar() {
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-[#27272A] bg-[#09090B] px-5 py-8">
-      {/* Brand */}
+    <aside className="flex w-56 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg)] px-5 py-8">
       <div className="mb-12">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-600">
-          Vigilant Intelligent Detection
+        <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)]">
+          VIDIC
+        </h1>
+        <p className="mt-2 text-[11px] leading-relaxed tracking-wide text-[var(--muted-dim)]">
+          Vigilant Intelligent Detection &amp; Investigation Console
         </p>
-
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">VIDIC</h1>
       </div>
 
-      {/* Navigation */}
       <nav className="space-y-1">
         {items.map((item) => {
           const Icon = item.icon;
@@ -39,10 +39,10 @@ export default function Sidebar() {
               key={item.label}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                `flex items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 text-sm transition ${
                   isActive
-                    ? "bg-[#17171A] text-white"
-                    : "text-zinc-400 hover:bg-[#17171A] hover:text-white"
+                    ? "bg-[var(--panel-hover)] text-[var(--text)]"
+                    : "text-[var(--muted)] hover:bg-[var(--panel-hover)] hover:text-[var(--text)]"
                 }`
               }
             >
@@ -50,12 +50,10 @@ export default function Sidebar() {
                 <>
                   <div
                     className={`h-4 w-[2px] rounded-full ${
-                      isActive ? "bg-blue-500" : "bg-transparent"
+                      isActive ? "bg-[var(--accent)]" : "bg-transparent"
                     }`}
                   />
-
                   <Icon size={17} strokeWidth={1.8} />
-
                   <span>{item.label}</span>
                 </>
               )}
@@ -65,10 +63,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto pt-10">
-        <div className="flex items-center gap-2 text-xs text-zinc-500">
-          <div className="h-2 w-2 rounded-full bg-green-500" />
-          Local inference ready
-        </div>
+        <p className="text-xs text-[var(--muted-dim)]">VIDIC v1.0.0 — local dev build</p>
       </div>
     </aside>
   );
