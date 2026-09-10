@@ -1,0 +1,29 @@
+# Secrets — never committed, keys live in OS keychain via `keyring`
+.env
+
+# Local database + IOC cache
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Packaging output
+build/
+dist/
+*.spec
+
+# Editor/OS cruft
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/

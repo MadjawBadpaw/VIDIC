@@ -1,0 +1,10 @@
+From: "Google Security" <no-reply@google.com>
+To: you@example.com
+Return-Path: <no-reply@google.com>
+Subject: Security alert on your account
+Date: Mon, 07 Sep 2026 10:00:00 +0000
+Message-ID: <fake123@evil-server.example>
+Received: from random-vps.evil-server.example (185.220.101.45) by mx.example.com; Mon, 07 Sep 2026 10:00:01 +0000
+Content-Type: text/plain; charset="utf-8"
+
+Someone signed in to your account from a new device. If this wasn't you, click here immediately.

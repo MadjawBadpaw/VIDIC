@@ -1,0 +1,12 @@
+From: "Your Bank" <security@your-bank-verify.ru>
+To: you@example.com
+Return-Path: <bounce@your-bank-verify.ru>
+Subject: Urgent: verify your account
+Date: Mon, 07 Sep 2026 10:00:00 +0000
+Message-ID: <abc123@your-bank-verify.ru>
+Received: from mail-relay.your-bank-verify.ru (185.220.101.45) by mx.example.com; Mon, 07 Sep 2026 10:00:01 +0000
+Content-Type: text/plain; charset="utf-8"
+
+Please verify your account immediately: http://your-bank-verify.ru/login?id=123
+
+Contact support@your-bank-verify.ru if you have questions.

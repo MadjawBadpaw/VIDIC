@@ -1,0 +1,35 @@
+Delivered-To: you@example.com
+Received: from mail-relay.example-corp.com (mail-relay.example-corp.com [93.184.216.34]) by mx.google.com with ESMTPS id abc123 for <you@example.com>; Mon, 07 Sep 2026 09:12:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; d=example-corp.com; s=selector1; c=relaxed/relaxed;
+Return-Path: <notifications@example-corp.com>
+From: "Example Corp Notifications" <notifications@example-corp.com>
+To: you@example.com
+Subject: Your weekly account summary
+Date: Mon, 07 Sep 2026 09:12:00 -0700
+Message-ID: <weekly-summary-20260907@example-corp.com>
+Content-Type: multipart/mixed; boundary="BOUNDARY123"
+MIME-Version: 1.0
+
+--BOUNDARY123
+Content-Type: text/plain; charset="utf-8"
+
+Hi there,
+
+Here is your weekly account summary for the week of September 1, 2026.
+
+Total activity: 12 logins, 3 new documents shared.
+
+Thanks,
+The Example Corp Team
+
+--BOUNDARY123
+Content-Type: text/plain; charset="utf-8"; name="summary.txt"
+Content-Disposition: attachment; filename="summary.txt"
+Content-Transfer-Encoding: 7bit
+
+Week of Sep 1, 2026
+Logins: 12
+Documents shared: 3
+Storage used: 2.3 GB
+
+--BOUNDARY123--
