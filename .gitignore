@@ -1,6 +1,7 @@
 # Secrets — never committed, keys live in OS keychain via `keyring`
 .env
 
+models/
 # Local database + IOC cache
 *.db
 *.sqlite

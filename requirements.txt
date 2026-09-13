@@ -1,20 +1,15 @@
-# --- Phase 0/1: UI + parsing + auth verification ---
+
 PySide6>=6.7
 checkdmarc>=5.0
 dkimpy>=1.1
 dnspython>=2.6
 pyspf>=2.0
 
-# --- Phase 2: local classifier (offline, CPU-friendly) ---
-# transformers>=4.40
-# torch>=2.2
 
-# --- Phase 3: threat intel + secrets ---
+transformers>=4.40
+torch>=2.2
+
+
 requests>=2.32
 keyring>=25.0
-
-# --- Phase 4+: persistence ---
-# SQLAlchemy>=2.0
-
-# --- Dev/test ---
 pytest>=8.0

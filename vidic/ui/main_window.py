@@ -11,8 +11,9 @@ from vidic.core.parser import EmailParseError, EmailParser
 from vidic.core.auth import AuthEngine
 from vidic.core.ioc import IOCExtractor
 from vidic.core.risk import RiskEngine
-from vidic.core.report_formatter import format_report
+from vidic.core.report_formatter import format_report_html
 from vidic.core.threat_intel_runner import gather_threat_intel
+from vidic.core.classifier import PhishingClassifier
 from vidic.core import secrets
 from vidic.core import db
 from vidic.ui.drop_area import DropArea
@@ -29,6 +30,7 @@ class MainWindow(QMainWindow):
         self._auth_engine = AuthEngine()
         self._ioc_extractor = IOCExtractor()
         self._risk_engine = RiskEngine()
+        self._classifier = PhishingClassifier()
         self._selected_path: Path | None = None
         self._last_result: dict | None = None
         self._build_ui()
@@ -144,7 +146,15 @@ class MainWindow(QMainWindow):
             if secrets.get_enrichment_mode() == secrets.MODE_FULL:
                 threat_intel_hits, threat_intel_by_service = gather_threat_intel(iocs)
 
-            risk = self._risk_engine.assess(parsed, auth, threat_intel_hits=threat_intel_hits)
+            url_values = [i.value for i in iocs if i.type == 'url']
+            classifier_result = self._classifier.classify(parsed.subject, parsed.body_text, url_values)
+            classifier_confidence = classifier_result.phishing_probability if classifier_result.checked else None
+
+            risk = self._risk_engine.assess(
+                parsed, auth,
+                threat_intel_hits=threat_intel_hits,
+                classifier_confidence=classifier_confidence,
+            )
         except EmailParseError as exc:
             self.progress_bar.setRange(0, 1)
             self.progress_bar.setValue(0)
@@ -153,15 +163,15 @@ class MainWindow(QMainWindow):
 
         self.progress_bar.setRange(0, 1)
         self.progress_bar.setValue(1)
-        report_text = format_report(parsed, auth, iocs, risk, threat_intel_by_service)
-        self.report_view.setPlainText(report_text)
+        report_html = format_report_html(parsed, auth, iocs, risk, threat_intel_by_service)
+        self.report_view.setHtml(report_html)
 
         self._last_result = {
             'subject': parsed.subject,
             'sender': parsed.sender,
             'verdict': risk.verdict,
             'risk_score': risk.score,
-            'report_text': report_text,
+                        'report_text': report_html,
             'fired_rules': [{'name': r.name, 'weight': r.weight, 'detail': r.detail} for r in risk.fired_rules],
             'iocs': [{'type': i.type, 'value': i.value, 'source': i.source} for i in iocs],
         }

@@ -21,7 +21,7 @@ class ReportViewerDialog(QDialog):
         layout = QVBoxLayout(self)
         view = QTextEdit()
         view.setReadOnly(True)
-        view.setPlainText(report_text)
+        view.setHtml(report_text)
         layout.addWidget(view)
 
 

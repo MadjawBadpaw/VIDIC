@@ -12,11 +12,17 @@ from urllib.parse import urlparse
 
 from vidic.core.parser import ParsedEmail
 
-_URL_RE = re.compile(r'\bhttps?://[^\s<>()]+', re.IGNORECASE)
+# Built via chr() rather than literal quote characters in the source,
+# so this can never be corrupted by smart-quote autocorrect during
+# copy/paste (this exact class of bug happened once already).
+_DQUOTE = chr(34)
+_SQUOTE = chr(39)
+
+_URL_RE = re.compile(r'\bhttps?://[^\s<>()' + _DQUOTE + _SQUOTE + r']+', re.IGNORECASE)
 _EMAIL_RE = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b')
 _IPV4_RE = re.compile(r'\b(\d{1,3}(?:\.\d{1,3}){3})\b')
 _IPV6_RE = re.compile(r'\b([0-9a-fA-F]{1,4}(?::[0-9a-fA-F]{0,4}){2,7})\b')
-_URL_TRAILING_PUNCTUATION = '.,;:!?)]}'
+_URL_TRAILING_PUNCTUATION = '.,;:!?)]}' + _DQUOTE + _SQUOTE
 
 
 @dataclass(frozen=True)
