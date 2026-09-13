@@ -148,4 +148,4 @@ vidic/
 
 ## License
 
-MIT. See `LICENSE` for details.
+MIT.
