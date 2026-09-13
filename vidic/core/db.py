@@ -1,8 +1,8 @@
-# Database Module (Phase 4)
-#
+
 # SQLite persistence for investigation history. Separate file from
 # vidic_cache.db, which is just the IOC threat-intel lookup cache -
 # this one is the permanent, user-visible investigation history.
+
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ DB_PATH = 'vidic_history.db'
 def _connect():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA foreign_keys = ON')
     return conn
 
 
@@ -40,6 +41,25 @@ def init_db():
         if 'label' not in cols:
             conn.execute("ALTER TABLE analyses ADD COLUMN label TEXT DEFAULT ''")
             conn.commit()
+
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS ioc_nodes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                type TEXT NOT NULL,
+                value TEXT NOT NULL,
+                UNIQUE(type, value)
+            )
+        ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS email_ioc_edges (
+                analysis_id INTEGER NOT NULL,
+                ioc_id INTEGER NOT NULL,
+                PRIMARY KEY (analysis_id, ioc_id),
+                FOREIGN KEY (analysis_id) REFERENCES analyses(id) ON DELETE CASCADE,
+                FOREIGN KEY (ioc_id) REFERENCES ioc_nodes(id) ON DELETE CASCADE
+            )
+        ''')
+        conn.commit()
     finally:
         conn.close()
 
@@ -54,10 +74,45 @@ def save_analysis(subject, sender, verdict, risk_score, analysis_data):
             (subject, sender, verdict, risk_score, json.dumps(analysis_data),
              datetime.now(timezone.utc).isoformat(), ''),
         )
+        analysis_id = cursor.lastrowid
         conn.commit()
-        return cursor.lastrowid
+
+        iocs = analysis_data.get('iocs', [])
+        _record_ioc_edges(conn, analysis_id, iocs)
+
+        return analysis_id
     finally:
         conn.close()
+
+
+def _record_ioc_edges(conn, analysis_id, iocs):
+    """Links an analysis to every IOC it contained, creating ioc_nodes
+    rows as needed. Called from save_analysis - iocs is the same list
+    of {'type': ..., 'value': ..., 'source': ...} dicts already stored
+    in analysis_json, so this adds no new extraction work."""
+    for ioc in iocs:
+        ioc_type = ioc.get('type')
+        ioc_value = ioc.get('value')
+        if not ioc_type or not ioc_value:
+            continue
+
+        conn.execute(
+            'INSERT OR IGNORE INTO ioc_nodes (type, value) VALUES (?, ?)',
+            (ioc_type, ioc_value),
+        )
+        row = conn.execute(
+            'SELECT id FROM ioc_nodes WHERE type = ? AND value = ?',
+            (ioc_type, ioc_value),
+        ).fetchone()
+        if row is None:
+            continue
+        ioc_id = row[0]
+
+        conn.execute(
+            'INSERT OR IGNORE INTO email_ioc_edges (analysis_id, ioc_id) VALUES (?, ?)',
+            (analysis_id, ioc_id),
+        )
+    conn.commit()
 
 
 def get_all_analyses():
@@ -129,5 +184,26 @@ def delete_analysis(analysis_id):
     try:
         conn.execute('DELETE FROM analyses WHERE id = ?', (analysis_id,))
         conn.commit()
+    finally:
+        conn.close()
+
+
+def get_ioc_graph_data():
+    """Returns the raw rows needed to build the IOC relationship graph:
+    every analysis (id, subject/label, verdict, risk_score) and every
+    (analysis_id, ioc_type, ioc_value) edge. Consumed by
+    vidic.core.graph, kept here so all SQL stays in this module."""
+    init_db()
+    conn = _connect()
+    try:
+        analyses = conn.execute(
+            'SELECT id, subject, verdict, risk_score, label FROM analyses'
+        ).fetchall()
+        edges = conn.execute('''
+            SELECT e.analysis_id, n.type, n.value
+            FROM email_ioc_edges e
+            JOIN ioc_nodes n ON n.id = e.ioc_id
+        ''').fetchall()
+        return [dict(row) for row in analyses], [dict(row) for row in edges]
     finally:
         conn.close()

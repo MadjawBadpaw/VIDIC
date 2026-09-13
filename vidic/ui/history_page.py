@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QDialog, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit,
-    QMessageBox, QPushButton, QSpinBox, QTableWidget, QTableWidgetItem,
-    QTextEdit, QVBoxLayout,
+    QAbstractItemView, QDialog, QHBoxLayout, QHeaderView, QInputDialog,
+    QLabel, QLineEdit, QMessageBox, QPushButton, QSpinBox, QTableWidget,
+    QTableWidgetItem, QTextEdit, QVBoxLayout,
 )
 
 from vidic.core import db
+from vidic.ui.graph_page import GraphViewDialog
 
 COLUMNS = ["Name", "Sender", "Verdict", "Date"]
 
@@ -49,13 +51,29 @@ class HistoryDialog(QDialog):
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.table.cellDoubleClicked.connect(self._open_selected_report)
+        self.table.itemSelectionChanged.connect(self._update_button_states)
         root.addWidget(self.table)
 
+        self.selection_label = QLabel("No entries selected")
+        self.selection_label.setStyleSheet("color: #666;")
+        root.addWidget(self.selection_label)
+
         action_row = QHBoxLayout()
-        rename_button = QPushButton("Rename Selected")
-        rename_button.clicked.connect(self._rename_selected)
-        action_row.addWidget(rename_button)
+        self.rename_button = QPushButton("Rename Selected")
+        self.rename_button.clicked.connect(self._rename_selected)
+        action_row.addWidget(self.rename_button)
+
+        self.delete_button = QPushButton("Delete Selected")
+        self.delete_button.setStyleSheet("QPushButton { color: #c62828; }")
+        self.delete_button.clicked.connect(self._delete_selected)
+        action_row.addWidget(self.delete_button)
+
+        self.graph_button = QPushButton("View Graph")
+        self.graph_button.clicked.connect(self._view_graph)
+        action_row.addWidget(self.graph_button)
+
         action_row.addStretch(1)
         root.addLayout(action_row)
 
@@ -72,6 +90,8 @@ class HistoryDialog(QDialog):
         purge_row.addStretch(1)
         root.addLayout(purge_row)
 
+        self._update_button_states()
+
     def _reload(self):
         query = self.search_input.text().strip()
         self._rows = db.search_analyses(query) if query else db.get_all_analyses()
@@ -84,24 +104,83 @@ class HistoryDialog(QDialog):
             self.table.setItem(i, 2, QTableWidgetItem(f"{row['verdict']} ({row['risk_score']})"))
             self.table.setItem(i, 3, QTableWidgetItem(row["created_at"][:19].replace("T", " ")))
 
-    def _selected_row_index(self):
-        selected = self.table.selectionModel().selectedRows()
-        if not selected:
-            return None
-        return selected[0].row()
+        self._update_button_states()
+
+    def _selected_row_indices(self) -> list[int]:
+        seen = set()
+        indices = []
+        for index in self.table.selectionModel().selectedRows():
+            if index.row() not in seen:
+                seen.add(index.row())
+                indices.append(index.row())
+        return sorted(indices)
+
+    def _update_button_states(self):
+        count = len(self._selected_row_indices())
+        if count == 0:
+            self.selection_label.setText("No entries selected")
+        elif count == 1:
+            self.selection_label.setText("1 entry selected")
+        else:
+            self.selection_label.setText(f"{count} entries selected")
+
+        self.rename_button.setEnabled(count == 1)
+        self.delete_button.setEnabled(count >= 1)
 
     def _rename_selected(self):
-        row_index = self._selected_row_index()
-        if row_index is None or row_index >= len(self._rows):
-            QMessageBox.information(self, "No selection", "Select a row first.")
+        row_indices = self._selected_row_indices()
+        if len(row_indices) != 1:
+            QMessageBox.information(self, "Select one entry", "Select exactly one entry to rename.")
             return
 
-        row = self._rows[row_index]
+        row = self._rows[row_indices[0]]
         current_name = row.get("label") or row["subject"]
         new_name, ok = QInputDialog.getText(self, "Rename entry", "New name:", text=current_name)
         if ok and new_name.strip():
             db.rename_analysis(row["id"], new_name.strip())
             self._reload()
+
+    def _delete_selected(self):
+        row_indices = self._selected_row_indices()
+        if not row_indices:
+            return
+
+        selected_rows = [self._rows[i] for i in row_indices]
+        names = [r.get("label") or r["subject"] for r in selected_rows]
+
+        if len(names) == 1:
+            message = f'Delete "{names[0]}"? This cannot be undone.'
+        else:
+            preview = "\n".join(f"- {n}" for n in names[:5])
+            if len(names) > 5:
+                preview += f"\n... and {len(names) - 5} more"
+            message = f"Delete {len(names)} entries? This cannot be undone.\n\n{preview}"
+
+        confirm = QMessageBox.question(
+            self, "Confirm delete", message,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        for row in selected_rows:
+            db.delete_analysis(row["id"])
+
+        self._reload()
+
+    def _view_graph(self):
+        row_indices = self._selected_row_indices()
+
+        if len(row_indices) == 1:
+            analysis_id = self._rows[row_indices[0]]["id"]
+            dialog = GraphViewDialog(focus_analysis_id=analysis_id, parent=self)
+        else:
+            # No selection, or multiple selected: show the full history
+            # graph rather than guessing which one to focus on.
+            dialog = GraphViewDialog(focus_analysis_id=None, parent=self)
+
+        dialog.exec()
 
     def _open_selected_report(self, row_index, _column):
         if row_index >= len(self._rows):
