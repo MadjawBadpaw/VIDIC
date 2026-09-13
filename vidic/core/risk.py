@@ -1,16 +1,7 @@
-# Risk Engine (Phase 2, partial)
-#
-# Weighted, capped (0-100) scoring. Right now this consumes signals from
-# the Auth Engine (Phase 1) and attachment inspection (this file).
-# Threat-intel hits (Phase 3) and classifier confidence (Phase 2b) are
-# optional parameters that slot in later without changing this engine's
-# shape - pass them in once those phases exist.
-#
-# Weight table matches PBR Section 11 exactly.
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 
 from vidic.core.auth import AuthResult
 from vidic.core.parser import ParsedEmail
@@ -25,9 +16,16 @@ WEIGHTS = {
     'abuseipdb_high': 15,
     'recent_domain': 10,
     'executable_attachment': 15,
+
     'classifier_high_confidence': 20,
     'classifier_moderate_confidence': 10,
+    'classifier_high_confidence_weak_corroboration': 28,
+    'classifier_moderate_confidence_weak_corroboration': 15,
+    'classifier_high_confidence_uncorroborated': 35,
+    'classifier_moderate_confidence_uncorroborated': 20,
 }
+
+STRONG_CORROBORATION_THRESHOLD = 40
 
 VERDICT_THRESHOLDS = [
     (90, 'Critical Phishing'),
@@ -47,6 +45,20 @@ RISKY_CONTENT_TYPES = {
     'application/vnd.ms-word.document.macroenabled.12',
     'application/vnd.ms-excel.sheet.macroenabled.12',
 }
+
+
+class CorroborationTier(str, Enum):
+    STRONG = "strong"
+    WEAK = "weak"
+    NONE = "none"
+
+    @classmethod
+    def for_score(cls, external_score: int) -> "CorroborationTier":
+        if external_score >= STRONG_CORROBORATION_THRESHOLD:
+            return cls.STRONG
+        if external_score > 0:
+            return cls.WEAK
+        return cls.NONE
 
 
 @dataclass(frozen=True)
@@ -129,15 +141,21 @@ class RiskEngine:
                 ))
 
         if classifier_confidence is not None:
+            external_score = sum(rule.weight for rule in fired)
+            tier = CorroborationTier.for_score(external_score)
+
             if classifier_confidence > 0.90:
-                fired.append(FiredRule(
-                    'classifier_high_confidence', WEIGHTS['classifier_high_confidence'],
-                    f'Phishing-text classifier confidence: {classifier_confidence:.0%}',
-                ))
+                rule_name = self._classifier_rule_name('high', tier)
             elif classifier_confidence >= 0.70:
+                rule_name = self._classifier_rule_name('moderate', tier)
+            else:
+                rule_name = None
+
+            if rule_name is not None:
                 fired.append(FiredRule(
-                    'classifier_moderate_confidence', WEIGHTS['classifier_moderate_confidence'],
-                    f'Phishing-text classifier confidence: {classifier_confidence:.0%}',
+                    rule_name, WEIGHTS[rule_name],
+                    f'Phishing-text classifier confidence: {classifier_confidence:.0%} '
+                    f'(external corroboration: {tier.value}, {external_score} pts from other checks)',
                 ))
 
         raw_score = sum(rule.weight for rule in fired)
@@ -145,6 +163,14 @@ class RiskEngine:
         verdict = self._verdict_for(score)
 
         return RiskAssessment(score=score, verdict=verdict, fired_rules=fired)
+
+    @staticmethod
+    def _classifier_rule_name(level: str, tier: CorroborationTier) -> str:
+        if tier == CorroborationTier.STRONG:
+            return f'classifier_{level}_confidence'
+        if tier == CorroborationTier.WEAK:
+            return f'classifier_{level}_confidence_weak_corroboration'
+        return f'classifier_{level}_confidence_uncorroborated'
 
     @staticmethod
     def _is_risky_attachment(attachment) -> bool:

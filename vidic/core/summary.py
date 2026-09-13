@@ -65,7 +65,42 @@ RULE_EXPLANATIONS = {
         "VIDIC's local phishing-language model rated the wording of this email as "
         'somewhat characteristic of phishing, though not conclusively.'
     ),
+    'classifier_high_confidence_weak_corroboration': (
+        "VIDIC's local phishing-language model rated the wording of this email as highly "
+        'characteristic of phishing. Only weak corroboration was found elsewhere, so the '
+        "classifier's reading of the language is weighted more heavily than usual."
+    ),
+    'classifier_moderate_confidence_weak_corroboration': (
+        "VIDIC's local phishing-language model rated the wording of this email as somewhat "
+        'characteristic of phishing. With only weak corroboration from other checks, this is '
+        'weighted somewhat more heavily than it otherwise would be.'
+    ),
+    'classifier_high_confidence_uncorroborated': (
+        "VIDIC's local phishing-language model rated the wording of this email as highly "
+        'characteristic of phishing. No other check found any evidence at all, so the '
+        "classifier's reading is the only signal available and is weighted accordingly."
+    ),
+    'classifier_moderate_confidence_uncorroborated': (
+        "VIDIC's local phishing-language model rated the wording of this email as somewhat "
+        'characteristic of phishing. No other check found any evidence at all, so this is '
+        'weighted more heavily than it otherwise would be.'
+    ),
+
+    'classifier_high_confidence_uncorroborated': (
+        "VIDIC's local phishing-language model rated the wording of this email as highly "
+        'characteristic of phishing (urgency, credential requests, impersonation patterns, etc). '
+        'No other check (VirusTotal, URLhaus, AbuseIPDB, domain age) found corroborating evidence '
+        '- likely because the sending domain or links are too new or obscure to appear in those '
+        "databases yet. Since the classifier's reading of the language is the only signal available "
+        'here, it is being weighted more heavily than usual.'
+    ),
+    'classifier_moderate_confidence_uncorroborated': (
+        "VIDIC's local phishing-language model rated the wording of this email as somewhat "
+        'characteristic of phishing, though not conclusively. No other check found corroborating '
+        'evidence, so this is weighted somewhat more heavily than it otherwise would be.'
+    ),
 }
+
 
 IOC_TYPE_LABELS = {
     'url': 'Link',

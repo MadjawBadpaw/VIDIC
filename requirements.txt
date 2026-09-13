@@ -4,7 +4,7 @@ checkdmarc>=5.0
 dkimpy>=1.1
 dnspython>=2.6
 pyspf>=2.0
-
+huggingface_hub>=0.24
 
 transformers>=4.40
 torch>=2.2
