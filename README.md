@@ -142,7 +142,7 @@ vidic/
 - [x] Local phishing-language classifier
 - [x] Corroboration-based classifier weighting
 - [x] Investigation history
-- [ ] Relationship graph across analyzed emails (shared senders, domains, infrastructure)
+- [x] Relationship graph across analyzed emails (shared senders, domains, infrastructure)
 - [ ] Rule-based phrase detection alongside the ML classifier
 - [ ] Full report page redesign
 
