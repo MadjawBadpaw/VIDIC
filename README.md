@@ -113,24 +113,65 @@ Verdict thresholds:
 ## Project structure
 
 ```
-vidic/
-├── core/
-│   ├── parser.py            .eml parsing into a structured object (standard library only)
-│   ├── auth.py              Independent SPF / DKIM / DMARC verification
-│   ├── ioc.py               URL / domain / IP / email / hash extraction
-│   ├── classifier.py        Phishing-language classifier (DistilBERT)
-│   ├── risk.py              Weighted risk scoring engine
-│   ├── summary.py           Plain-language explanations for fired rules
-│   ├── report_formatter.py  HTML report generation
-│   ├── db.py                SQLite-backed investigation history
-│   ├── secrets.py           API key storage via keyring
-│   └── threat_intel/        VirusTotal, AbuseIPDB, URLhaus, and RDAP clients
-├── ui/
-│   ├── main_window.py       Main application window
-│   ├── drop_area.py         Drag-and-drop target for .eml files
-│   ├── history_page.py      Investigation history browser
-│   └── settings_page.py     API key and enrichment mode settings
-└── main.py                  Application entry point
+Directory structure:
+└── madjawbadpaw-vidic/
+    ├── README.md
+    ├── requirements.txt
+    ├── tests/
+    │   ├── email.eml
+    │   ├── phishing.eml
+    │   ├── real_phish_1.eml
+    │   ├── real_phish_10.eml
+    │   ├── real_phish_2.eml
+    │   ├── real_phish_3.eml
+    │   ├── real_phish_4.eml
+    │   ├── real_phish_5.eml
+    │   ├── real_phish_6.eml
+    │   ├── real_phish_7.eml
+    │   ├── real_phish_8.eml
+    │   ├── real_phish_9.eml
+    │   ├── spoofed_google.eml
+    │   ├── test_auth.py
+    │   ├── test_db.py
+    │   ├── test_ioc.py
+    │   ├── test_parser.py
+    │   ├── test_risk.py
+    │   └── test_summary.py
+    └── vidic/
+        ├── __init__.py
+        ├── main.py
+        ├── pytest.ini
+        ├── core/
+        │   ├── __init__.py
+        │   ├── auth.py
+        │   ├── classifier.py
+        │   ├── db.py
+        │   ├── graph.py
+        │   ├── ioc.py
+        │   ├── parser.py
+        │   ├── report_formatter.py
+        │   ├── risk.py
+        │   ├── secrets.py
+        │   ├── summary.py
+        │   ├── threat_intel_runner.py
+        │   └── threat_intel/
+        │       ├── __init__.py
+        │       ├── abuseipdb.py
+        │       ├── cache.py
+        │       ├── rdap.py
+        │       ├── urlhaus.py
+        │       └── virustotal.py
+        ├── scripts/
+        │   └── download_model.py
+        └── ui/
+            ├── __init__.py
+            ├── drop_area.py
+            ├── graph_page.py
+            ├── history_page.py
+            ├── main_window.py
+            ├── report_page.py
+            └── settings_page.py
+
 ```
 
 ## Roadmap
